@@ -13,12 +13,12 @@ func setupRoutes(appServer *AppServer) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
-	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
 	// 添加中间件
 	router.Use(errorHandlingMiddleware())
 	router.Use(corsMiddleware())
+	// mcpMethodLogger 替换了 gin.Logger()，同时打印一行合并日志
 
 	// 健康检查
 	router.GET("/health", healthHandler)
@@ -38,6 +38,7 @@ func setupRoutes(appServer *AppServer) *gin.Engine {
 	)
 	protected := router.Group("")
 	protected.Use(authMiddleware(appServer.authToken))
+	protected.Use(mcpMethodLogger())
 
 	protected.Any("/mcp", gin.WrapH(mcpHandler))
 	protected.Any("/mcp/*path", gin.WrapH(mcpHandler))
